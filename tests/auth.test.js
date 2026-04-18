@@ -1,9 +1,24 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import request from "supertest";
 import app from "../src/app.js";
+import User from "../src/models/User.js";
+import mongoose from "mongoose";
+import connectDB from "../src/config/db.js";
 
 describe("Auth Routes", () => {
 
   let token;
+
+  beforeAll(async () => {
+    await connectDB();
+    await User.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
+  });
 
   it("should register a user", async () => {
     const res = await request(app)
@@ -14,6 +29,9 @@ describe("Auth Routes", () => {
         password: "123456"
       });
 
+    if (res.statusCode !== 201) {
+      console.log("Registration failed body:", JSON.stringify(res.body, null, 2));
+    }
     expect(res.statusCode).toBe(201);
     expect(res.body.email).toBe("test@example.com");
   });
